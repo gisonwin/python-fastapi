@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+//本协议为微小卫星并行自动化测试系统-测试协议-设备服务相关协议
+package protobuf.TST_DEV;
+
+//设备资源管理服务器相关协议
+//设备代理启动连接设备资源服务管理器成功，资源管理主动发送监控IP和端口号，起始端口号，无需返回
+message TST_DEVM_INFO
+{
+  string  strMoncIPAdress = 1;    //监控服务IP和端口号
+  int32  iMoncPort = 2;    //监控服务的端口号
+  int32  iDevsStartPort = 3;    //本机设备服务起始端口号
+  string  strSQLIPAdress = 4;    //查询服务的IP地址
+  int32  iSQLPort = 5;      //查询服务的端口号
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//设备启动指令发送包，发送方是前端软件
+message TST_DEVM_START
+{
+  repeated string  strDevCode = 1;  //设备实例代号
+}
+
+//设备启动指令返回包，由设备资源管理服务器软件返回给前端 由于设备启动步骤较多，该返回包可能有多个
+message TST_DEVM_START_RET
+{
+  message TST_DEVM_STATE
+  {
+    string  sDEVSIP = 1;    //设备服务IP
+    int32  iDEVPort = 2;    //设备服务监听端口号
+    string  sDEVSGuid = 3;    //设备服务的GUID号
+    message _STATE
+    {
+      string    strDevCode = 1;  //设备实例代号
+      PUB_EDevState  iDevState = 2;  //设备实例状态
+    }
+    repeated _STATE _DevState = 4;  //多个设备实例状态
+
+  }
+  repeated TST_DEVM_STATE  DevState = 1;  //结构体信息表示该服务下包含的设备实例状态
+  string  sAskSoftGuid = 2;      //前端请求者的guid号
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//设备资源管理服务器软件发送给设备代理设备启动指令
+message TST_DEVA_START
+{
+  message TST_DEVA_S
+  {
+    int32  iPort = 1;      //设备服务监听端口号
+    repeated  string  strDevCode = 2;  //设备实例代号
+  }
+  repeated TST_DEVA_S _Devs = 1;    //可能有多个设备服务要启动设备
+  string  sAskSoftGuid = 2;      //前端请求者的guid号
+}
+
+//设备代理收到启动后，根据实例代号查询数据库获取相关信息，是否下载，是否启动服务还是继承已有服务，再向服务发送启动指令
+//返回包为TST_DEVM_START_RET
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//设备代理发送给设备服务启动指令
+message TST_DEVS_START
+{
+  message TST_DEVS_S
+  {
+    string  strDevCode = 1;  //设备实例代号
+    string  strDevRunXML = 2;  //设备实例对应的运行配置文件 可以为空
+    string  strDevDllName = 3;  //设备实例要启动的动态库的名称，不带后缀，需要指定平台windows是dll，linux是so
+  }
+  repeated TST_DEVS_S _Devs = 1;  //启动设备
+  string  strTaskGuid = 2;    //本次启动的设备代理产生的任务GUID，返回时携带
+}
+
+
+//设备服务接收启动指令，返回包，一次返回
+message TST_DEVS_START_RET
+{
+  message TST_DEV_S
+  {
+    string  strDevCode = 1;    //设备实例代号
+    PUB_EDevState  eDevState = 2;  //设备实例运行状态
+    string  strError_chi = 3;    //如果有失败返回错误信息中文
+    string  strError_eng = 4;    //如果有失败返回错误信息英文
+  }
+  repeated TST_DEV_S _Dev = 1;    //启动设备的返回
+  string  strTaskGuid = 2;    //本次启动的设备代理产生的任务GUID，返回时携带
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//前端软件连接设备服务后，发送停止命令
+message TST_DEVS_STOP
+{
+  repeated string  strDevCode = 1;  //设备实例代号
+}
+
+//设备服务接收指令判读、计数减一，确定是否释放资源，向所连接的设备代理(代理再转给资源管理)、前端发送数据包
+message TST_DEVS_STOP_RET
+{
+  message _STOPSTATE
+  {
+    string 	strDevCode 	 = 1;	//设备实例代号
+    string	strError_chi = 2;	//如果有失败返回错误信息中文
+    string	strError_eng = 3;	//如果有失败返回错误信息英文
+  }
+  string	strDevsGuid = 1;				//设备服务guid
+  string	strAskSoftGuid = 2;				//20210915前端请求者的GUID
+  repeated _STOPSTATE _DevStopState = 3;	//设备停止状态
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//由于设备服务内没有任何驱动，自动释放资源，自我销毁前给设备代理（代理再转给资源管理）发送设备服务退出消息无需返回
+message TST_DEVS_QUIT
+{
+  string  strDevsName = 1;      //设备服务名称
+}
+
+
+
+
+
+

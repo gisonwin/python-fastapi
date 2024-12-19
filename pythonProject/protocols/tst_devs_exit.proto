@@ -1,0 +1,8 @@
+syntax = "proto3";
+package protobuf.DevExit;
+
+//设备退出
+message Notify
+{
+  string	strDevCode = 1;
+}

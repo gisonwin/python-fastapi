@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+package protobuf.TST_DEVS_PARAM;
+
+//属性值查询，前端软件调试设备可用
+message Request
+{
+  string  strDevCode = 1;  //设备code.
+  string  strParamCode = 2;  //属性code.
+
+  //附加
+  bytes  keyTcpLink = 3;    //tcp link socke句柄
+  string    water_id = 4;//业务流水号(确保全局唯一，建议GUID字符串)
+}
+
+//属性值查询返回包
+message Respond
+{
+  string      strDevCode = 1;  //设备实例代号
+  string      strParamCode = 2;  //属性code.
+  PUB_EDevState  iDevState = 3;  //设备实例状态
+  int32      iParamRet = 4;  //属性返回0正常其它异常
+  oneof param  //union
+  {
+    string strErrorInfo = 5;  //错误描述.
+    Param paramAttr = 6;      //返回的属性值
+  }
+
+  //附加
+  bytes  keyTcpLink = 7;  //tcp link socket句柄
+  string    water_id = 8;//业务流水号(确保全局唯一，建议GUID字符串)
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package protobuf.TST_DEVS_STOP;
+
+//前端软件连接设备服务后，发送停止命令
+message Request
+{
+  string	strAskSoftGuid	= 1;	//20210915前端请求者的GUID（客户端代号）
+  string  water_id 		= 2;	//业务流水号(确保全局唯一，建议GUID字符串)
+  repeated string	strDevCode = 3;	//设备实例代号 添加by yanwh, 2022-07-19
+}
+
+//设备服务接收指令判读、计数减一，确定是否释放资源，向所连接的设备代理(代理再转给资源管理)、前端发送数据包
+message Respond
+{
+  string strDevsName = 1;  //设备服务名称
+  string strDevCode = 2;  //设备实例代号
+  bool   bIsOK = 3;  //true成功false失败
+  string strError = 4;  //失败原因
+  int32  iReferenceCount = 5;  //引用计数
+  string    water_id = 6;//业务流水号(确保全局唯一，建议GUID字符串)
+}

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+//本协议为微小卫星并行自动化测试系统-测试协议-设备服务相关协议
+package protobuf.TST_DEVS_CMD;
+
+//前端软件发送设备指令
+message Request
+{
+  string    strDevCode = 1;    //设备code.
+  string    strCmdCode = 2;    //指令code.
+  string		strChannel = 3;	//使用哪个通道
+  MapParam 	mapParam   = 4;	//输入参数
+
+  ////////////////////////////////////////////////////////////////
+  //附加
+  bytes		keyTcpLink = 5;	//tcp link socke句柄
+  string    	water_id   = 6;	//业务流水号(确保全局唯一，建议GUID字符串)
+}
+
+//设备服务接收指令返回
+message Respond
+{
+  string      strDevCode = 1;  //设备实例代号
+  string      strCmdCode = 2;  //指令code.
+  PUB_EDevState  iDevState = 3;  //设备实例状态
+  int32      iCmdRet = 4;  //指令返回0正常其它异常
+  oneof param//union
+  {
+    string strErrorInfo = 5;    //错误描述.
+    MapParam mapParam = 6;//输出参数. 本系统不存在返回参数，作为通用设计在其它系统中使用
+  }
+
+  //附加
+  bytes  keyTcpLink = 7;  //tcp link socket句柄
+  string    water_id = 8;//业务流水号(确保全局唯一，建议GUID字符串)
+}

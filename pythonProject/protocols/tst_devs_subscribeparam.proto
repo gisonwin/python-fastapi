@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+
+package protobuf.TST_DEVS_SUBSCRIBEPARAM;
+
+//属性订阅 ，作为通用设计
+message Request
+{
+  string  strDevCode = 1;  //设备code
+  bool  bSubScribe = 2;  //false取消订阅true订阅
+  repeated string strParamCode = 3;  //订阅属性代号
+  string    water_id = 4;//业务流水号(确保全局唯一，建议GUID字符串)
+}
+
+//属性订阅返回 ，成功后会不定期推送属性结构体TST_DEVS_PUSHPARAM
+message Respond
+{
+  string  strDevCode = 1;  //设备code
+  bool  bSubScribe = 2;  //false取消订阅true订阅
+  bool  bSuccess = 3;  //false失败true成功
+  string  strError = 4;  //失败返回的错误信息
+  string    water_id = 5;//业务流水号(确保全局唯一，建议GUID字符串)
+}

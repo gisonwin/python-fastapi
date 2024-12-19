@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+
+//本协议为微小卫星并行自动化测试系统-测试协议
+package protobuf;
+
+//公共部分
+
+//全局登录 任何软件作为客户端连接成功后，首先发送登录信息便于管理
+message TST_LOGIN
+{
+  string  strSoftCode = 1;  //软件代号，每个软件都有自己的代号
+  string  strSoftGuid = 2;  //软件实例的GUID，唯一标识
+  string  strUserID = 3;  //登录账号  可以没有，例如服务类软件
+  string  strUserName = 4;  //登录用户名 可以没有
+  string  strSoftLocalIP = 5;  //本机监听地址
+  int32  iSoftLocalPort = 6;  //本机监听端口号
+}
+
+//全局退出 任何软件作为客户端连接成功后，正常退出时发送退出信息便于管理
+message TST_LOGOFF
+{
+  string  strSoftCode = 1;  //软件代号，每个软件都有自己的代号
+  string  strSoftGuid = 2;  //软件实例的GUID，唯一标识
+  string  strUserID = 3;  //登录账号  可以没有，例如服务类软件
+  string  strUserName = 4;  //登录用户名 可以没有
+  string  strSoftLocalIP = 5;  //本机监听地址
+  int32  iSoftLocalPort = 6;  //本机监听端口号
+}

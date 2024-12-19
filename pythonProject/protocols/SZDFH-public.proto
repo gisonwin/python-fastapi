@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+//本协议为微小卫星并行自动化测试系统-公共部分协议
+package protobuf;
+
+//公共部分
+//卫星信息
+message PUB_MStarInfo
+{
+  string  sStyleName = 1;      //型号名称
+  string  sStyleCode = 2;      //型号代号
+  int32  iStyleID = 3;      //型号ID
+
+  message SStar
+  {
+    string  sStarName = 1;    //卫星名称  全局不唯一 型号内唯一
+    string  sStarCode = 2;    //卫星代号  全局不唯一 型号内唯一
+    int32  iStarID = 3;    //卫星ID
+  }
+
+  message SBatch
+  {
+    string  sBatchName = 1;    //批次名称  全局不唯一 型号内唯一
+    string  sBatchCode = 2;    //批次代号  全局不唯一 型号内唯一
+    int32  iBatchID = 3;    //批次ID
+    repeated SStar nStar = 4;  //该批次下的卫星
+  }
+  repeated SStar nStar = 4;    //该型号下的直属卫星，可以有多个，也可以是0
+  repeated SBatch nBatch = 5;    //该型号下的批次，可以有多个，也可以是0
+}
+
+//全局配置结构体定义
+message PUB_GLOBALINFO
+{
+  string  strKey = 1;  //主键
+  string  strName = 2;  //名称
+  string  strValue = 3;  //值
+  string  strMark = 4;  //备注
+}
+
+//数据类型
+enum PUB_EDataType
+{
+  t_int32 = 0;
+  t_uint32 = 1;
+  t_int64 = 2;
+  t_uint64 = 3;
+  t_float = 4;
+  t_double = 5;
+  t_string = 6;
+  t_bytes = 7;
+}
+
+//设备实例运行状态
+enum PUB_EDevState
+{
+  LOAD = 0;    //驱动已经启动
+  LOADING = 1;    //驱动加载中......
+  UNLOAD = 2;    //驱动已经卸载(或停止)
+  LOADFAIL = 3;    //加载失败(启动失败)
+  DEVON = 4;    //与硬件建立通信
+  DEVOFF = 5;    //与硬件未建立通信
+  DEVBREAK = 6;    //与硬件通信异常
+  DEVSHAREON = 7;  //与硬件建立通信(共享)
+  DEVSHAREOFF = 8;  //与硬件未建立通信(共享)
+  DEVSHAREBREAK = 9;  //与硬件通信异常(共享)
+  DEV_NONE = 10;  //该设备不存在
+}
+
+//操作系统平台枚举
+enum PUB_EPLATFORM
+{
+  WINDOWS = 0;  //windows操作系统
+  LINUX = 1;    //linux操作系统
+}
+
+//语言枚举
+enum PUB_ELANGUAGE
+{
+  CHINESE = 0;  //中文
+  ENGLISH = 1;  //英文
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//指令下参数携带的数据结构，属性结构体
+message Param
+{
+  PUB_EDataType  nDataKind = 1;  //数据类别
+  oneof value//union
+  {
+    int32  v_int32 = 2;
+    uint32  v_uint32 = 3;
+    int64  v_int64 = 4;
+    uint64  v_uint64 = 5;
+    float  v_float = 6;
+    double  v_double = 7;
+    string  v_string = 8;
+    bytes  v_binary = 9;
+  }
+}
+
+//参数map一个指令可以有多个参数
+message MapParam
+{
+  map<string, Param>  mapParam = 1;  //参数代号，参数值
+}

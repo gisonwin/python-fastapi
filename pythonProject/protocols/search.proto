@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package protobuf;
+/**
+ SearchRequest represents a search query,with pagination options to indicate with results to include in the response.
+ */
+message SearchRequest{
+  string query = 1;
+  int32 page_number = 2; //which page number do we want?
+  int32 result_per_page = 3;//Number of results to return per page.
+}
+message Foo{
+  reserved 2, 15, 9 to 11;
+  reserved "foo", "bar";
+}
+message SearchResponse{
+  repeated Result results = 1;
+  map<string, Result> params = 2;
+}
+message Result{
+  string url = 1;
+  string title = 2;
+  repeated string snippets = 3;
+}

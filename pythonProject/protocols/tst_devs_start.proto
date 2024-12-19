@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+package protobuf.TST_DEVS_START;
+
+//设备代理发送给设备服务启动指令
+message Request
+{
+  message TST_DEVS_S
+  {
+    string  strDevCode = 1;  //设备实例代号
+    string  strDevRunXML = 2;  //设备实例对应的运行配置文件 可以为空
+    string  strDevDllName = 3;  //设备实例要启动的动态库的名称，不带后缀，需要指定平台windows是dll，linux是so
+  }
+  repeated TST_DEVS_S _Devs = 1;  //启动设备
+  //  string    water_id = 2;//业务流水号(确保全局唯一，建议GUID字符串)
+}
+
+//设备服务接收启动指令，返回包,一个request可以返回n次(每次一个设备)
+message Respond
+{
+  string  strDevCode = 1;  //设备实例代号
+  PUB_EDevState eDevState = 2;//设备实例运行状态
+  string  strError = 3;  //如果有失败返回错误信息
+
+  //附加
+  bytes  keyTcpLink = 4;  //tcp link socket句柄
+  //  string    water_id = 5;//业务流水号(确保全局唯一，建议GUID字符串)
+}

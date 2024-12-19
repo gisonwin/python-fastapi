@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+//本协议为微小卫星并行自动化测试系统-查询协议-设备服务相关协议
+package protobuf;
+
+//设备代理下载驱动文件 两个步骤1获取全部驱动名称和时标2对比本地指定文件下载
+//设备代理在收到TST_DEVA_START消息后，也需按照以下两个步骤执行
+//步骤1：
+message SQL_DEVA_GETALLDEV
+{
+	PUB_EPLATFORM	_ePlatform=1;	//下载哪个平台驱动文件0windows1linux
+	bool		bGetAll=2;	//true获取所有驱动文件名称和时标    false 指定获取某些驱动时标
+	repeated string	strDevCode=3;	//当上个字段bGetAll=false的时候有效，指定获取某些设备实例的驱动时标
+	string		strTaskID=4;	//本次任务的GUID
+}
+
+//查询服务返回获取信息
+message SQL_DEVA_GETALLDEV_RET
+{
+	message DriveInfo
+	{
+		string	strDriverName=1;		//驱动文件名称,数据库里是什么就是什么
+		double	dbDatetime = 2;		//驱动上传更新时间
+		repeated string strDevCode=3;	//该驱动所对应的设备实例代号
+	}
+	repeated DriveInfo mul=1;			//查询服务返回多个驱动名称和时标信息
+	string		strTaskID=2;		//本次任务的GUID
+}
+//步骤2：
+//设备代理根据这些信息比对根目录下是否有该文件及时标，没有文件的或时标旧的传给查询服务下载
+message SQL_DEVA_DEVDOWNLOAD
+{
+	PUB_EPLATFORM	_ePlatform=1;		//下载哪个平台驱动文件0windows1linux
+	string		strTaskID=2;		//本次任务的GUID
+	repeated string	strDriverName=3;		//需要下载的驱动文件名称，没有后缀名
+}
+
+//查询服务返回下载信息
+message SQL_DEVA_DEVDOWNLOAD_RET
+{
+	message DriveFileInfo
+	{
+		string	strDriverName=1;		//驱动文件名称
+		double	dbDatetime = 2;		//驱动上传更新时间
+		bytes	byData=3;		//二进制文件内容
+	}
+	string		strTaskID=1;		//本次任务的GUID
+	repeated DriveFileInfo mul=2;		//查询服务返回多个驱动名称、时标信息、文件内容
+}
+//步骤3：
+//设备代理在收到TST_DEVA_START消息后，下载运行配置文件，每次必下
+message SQL_DEVA_RUNXMLDOWNLOAD
+{
+	string		strTaskID=1;	//本次任务的GUID
+	repeated string strDevCode=2;	//设备实例代号
+}
+//返回包
+message SQL_DEVA_RUNXMLDOWNLOAD_RET
+{
+	message DevRunXml
+	{
+		string strDevCode=1;	//设备实例代号
+		string strIPAdress=2;	//设备地址
+		string strPort=3;		//端口
+		int32  iCardNum=4;	//板卡数量
+		int32  iChlNum=5;		//通道数量
+		message CardXML
+		{
+			string	strCardName=1;	//板卡名称
+			repeated string strChlConfig=2;	//通道配置
+			int32 iCard_TYPE=3;// Card_TYPE 23-03-23
+		}
+		repeated  CardXML  mes_card=6;	//如果有板卡，这是板卡的配置
+		message RunXML
+		{
+			string cfg_id=1;		//CFG_ID
+			string cfg_name=2;	//CFG_NAME
+			string cfg_flag=3;		//CFG_DEALFLAG
+			string cfg_value=4;	//CFG_VALUE
+		}
+		repeated RunXML strXML=7;		//驱动内原始配置文件
+	}
+	string		strTaskID=1;	//本次任务的GUID
+	repeated DevRunXml	mul=2;	//设备实例运行配置文件
+}
+//获取全局信息
+//发送给查询服务
+message SQL_GET_CFG
+{
+	string	strkey=1;		//发送全局配置分类的分类名称，查找该分类的详细配置
+}
+
+//查询服务返回的
+message SQL_GET_CFG_RET
+{
+	string	strkey=1;			//发送全局配置分类的分类名称，查找该分类的详细配置
+	map<string,string>	mapCFGDetail=2;	//详细配置信息K-V结构
+}

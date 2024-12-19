@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package protobuf.occupy_dev_channel;
+
+//占有设备通道
+
+message Request
+{
+	bool 	bOccupy 		= 1; //是否占用
+	string 	strDevCode		= 2; //设备code
+
+	//1.key表示该客户端准备占用的"通道号", value值忽略;
+	//a)如果没有通道概念:key(通道号)用"空字符串"表示
+	//b)如果通道有层级,可以用.连接表示,比如pxi的通道,2.3表示2号板卡的3号通道
+	//2.如果发现其中的某一通道被另一个客户端占用,那么即使其它通道未被占用,该客户端也不会占用该设备的任何一个通道
+	//3.收到指令请求时,只有在该客户端占用该通道时,才会去执行该指令
+	//4.客户端退出时,会退出它占用的所有设备的所有通道
+	map<string, bool> mapChannel = 3;//准备占用哪些通道
+}
+
+message Respond
+{
+	bool  	bSuccess   = 1;	//是否成功
+	string 	strDevCode = 2;	//设备code
+	string 	strErrors   = 3; //报警或错误信息
+}
+

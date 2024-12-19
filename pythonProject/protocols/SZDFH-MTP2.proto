@@ -1,0 +1,686 @@
+﻿syntax = "proto3";
+
+//版本记录：2021-7-15 V1
+//版本记录：2021-9-13 V2.1
+//版本记录：2021-4-6 V3
+//版本记录：2021-4-6 V3.1
+//版本记录：2022-8-8 V3.2
+//版本记录：2022-11-3 V3.3
+//版本记录：2023-1-5 V3.4
+//版本记录：2023-2-15 V3.5-----修改常监视协议，增加模块id
+//版本记录：2023-3-24 V3.6-----8号消息，增加资源映射信息
+//版本记录：2023-3-27 V3.7-----8号消息，测试阶段由MTP返回给TCC后台
+//版本记录：2023-4-11 V3.8-----41号消息增加主控权限标志，增加44号消息
+//版本记录：2023-4-13 V3.9-----加强通信链路管理，增加61号、62号、63号消息
+//版本记录：2023-5-6 V3.10-----7号消息增加显示要求列，25号消息增加显示要求列
+//版本记录：2023-5-22 V3.11-----增加帧同步字（11号、12号、14号），16号消息几个GUID由string->uint64
+//版本记录：2023-6-7 V3.12-----8号消息指示增加后判失败指示标志
+//版本记录：2023-6-7 V3.13-----31、32号消息根据需求变更，跳转至节点GUID
+//版本记录：2023-8-3 V3.14-----26，28，29常监视页删除和查询
+//版本记录：2023-8-31 V3.15-----19号增加数据类别和存储标志
+//版本记录：2023-11-13 V3.16-----增加71、72号消息，终止手工指令
+//版本记录：2023-11-17 V3.17-----增加78号消息，MTP接收到前端服务返回CACK时，作为指令响应时间信息，实时返回给TCC
+//版本记录：2023-12-20 V3.18-----增加7号消息字段，加强指令一致性比对校验,5号增加用户名称
+//版本记录：2024-1-11 V3.19-----增加5号消息字段，5号增加测试阶段名称，测试阶段返回由代号变为名称
+//版本记录：2024-1-25 V3.20-----增加11号消息字段，帧计数,12号消息增加字段tm_id_result,增加81号消息(XLog)
+//版本记录：2024-1-27 V3.21-----修改16号消息字段类型
+//本协议为微小卫星并行自动化测试系统-测试协议
+package SZDFH_MTP2;
+
+//公共部分
+
+
+//获取MTP资源消息-请求
+//(客户端与[资源管理服务]建立TCP/IP连接后，客户端主动发送)
+//数据包类型:message_id=1
+message msgRequestMTPResource
+{
+	string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+
+	string		user_code	=	2;//用户标志
+	uint64		star_code = 3;//产品(卫星)编号
+	uint32		terminal_type = 4;//终端类型  1=TCC  2=MON  3=设备前端
+}
+
+//获取MTP资源消息-响应
+//数据包类型:message_id=2
+message msgRespondMTPResource
+{
+	string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+	int32			result	=	2;//结果标志  0=成功,其他值失败
+
+	string		user_code	=	3;//用户编号(请求包中信息，原样返回)
+	uint64		star_code = 4;//产品(卫星)编号(请求包中信息，原样返回)
+	string		mtp_resource_ip = 5;//MTP资源IP
+	uint32		mtp_resource_port = 6;//MTP资源监听端口
+	string		mtp_resource_code	=	7;//MTP资源code
+	string		mtp_resource_ip_lan = 8;//MTP资源IP(内)
+}
+
+//登录消息-请求
+//(客户端与[MTP资源]建立TCP/IP连接后，客户端主动发送登录消息)
+//数据包类型:message_id=3
+message msgRequestLogon
+{
+	string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+
+	string		user_code	=	2;//用户编号
+	uint64		star_code = 3;//产品(卫星)编号
+	string		mtp_code	=	4;//使用查询MTP资源管理服务返回的MTPcode
+	uint32		terminal_type = 5;//终端类型  1=TCC  2=MON  3=设备前端
+	string		logon_time = 6;//登录时间,格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//登录消息-响应
+//数据包类型:message_id=4
+message msgRespondLogon
+{
+	string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+
+	int32			result = 2;//结果标志  0=成功,其他值失败
+
+	string		user_code	=	3;//用户编号(请求包中信息，原样返回)
+	uint64		star_code = 4;//产品(卫星)编号(请求包中信息，原样返回)
+	string		logon_desc = 5;//描述信息
+
+	string		respond_logon_time = 6;//登录响应时间,格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//测试初始化-请求
+//数据包类型:message_id=5
+message msgRequestInit
+{
+	string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+
+	string		user_code	=	2;//用户编号
+	uint64		star_code = 3;//产品(卫星)编号
+	uint32		init_mode	=	4;//测试初始化方式：1=初始化 2=重新初始化 3=测试退出
+	uint32		use_db_mode	=	5;//使用测试数据库方式：1=中心数据库     2=离线数据库
+	uint32    master_control = 6;//主控权限：1=有主控权限  0=无主控权限
+	string		init_time = 7;//初始化时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	uint32		test_level = 8;//测试阶段
+	string		test_position = 9;//测试工位（GUID）
+
+	string		user_name	=	10;//用户名称
+	string		test_level_name	=	11;//测试阶段(名称)
+	string		test_position_name = 12;//测试工位名称
+}
+
+//测试初始化-响应
+//数据包类型:message_id=6
+message msgRespondInit
+{
+	string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+
+	int32			result = 3;//结果标志  0=成功,其他值失败
+
+	string		init_desc = 4;//描述信息
+
+	string		respond_init_time = 5;//响应初始化时间,格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//发送指令-请求(指令节点或者手工指令)
+//数据包类型:message_id=7
+message msgSendCommand
+{
+	string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+
+	uint64		star_code = 2;//产品(卫星)编号
+
+	string		command_code	=	3;//指令代号(一致性比对字段1)
+	uint32		send_conmand_outtime = 4;//发送指令超时时间
+	string		pre_judge_code	=	5;//指令前判据代号(无判据时，填空)
+	string		post_judge_code	=	6;//指令后判据代号(无判据时，填空)
+	uint32		post_judge_outtime = 7;//后判超时时间
+	string		send_command_time = 8;//指令发送时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	string		star_name	=	9;//产品(卫星)名称
+	string		command_name	=	10;//指令名称(一致性比对字段2)
+	string		user_name	=	11;//用户名称
+	string		send_type	=	12;//发送类型：手工指令| 快速序列 |测试序列
+
+	uint32		command_type = 13;//指令类型(一致性比对字段3)
+	uint32		command_len = 14;//指令长度(一致性比对字段4)
+	string		command_data_block = 15;//指令码字(一致性比对字段5)
+}
+
+//发送指令-响应
+//数据包类型:message_id=8
+message msgCommandCack
+{
+	string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+	uint32		command_result = 3;//结果标志  0x30=成功,其他值失败
+	string		cack_desc = 4;//描述信息
+	string		cack_command_time = 5;//响应指令时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	string		command_code	=	6;//指令code
+	string		command_data_block = 7;//指令数据块
+
+	string		dev_resource_code = 8;//公司设备资产编号(多设备时，设备之间用'|'分割)
+	string		dev_channel_code = 9;//设备通道描述(多通道时，设备之间用'|'分割)
+	string		dev_name = 10;//设备名称(多设备时，设备之间用'|'分割)
+	string		test_level = 11;//测试阶段（由MTP返回，设备可以填空）
+
+	uint32		post_judge_error_flag = 12;//后判失败指示标志  0x99=后判失败,其他值无意义，外部填0
+}
+
+//判据请求(无指令判据节点)
+//数据包类型:message_id=9
+message msgJudgeRequest
+{
+	string		water_id	= 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		judge_code = 3;//判据代号(无指令判据)
+	uint32		affect_sequence_flag = 4;//0x30=不影响、0x31=影响
+}
+
+//判据结果
+//数据包类型:message_id=10
+message msgJudgeResult
+{
+	string		water_id	= 1;//业务流水号(请求指令请求包或者独立判据请求[无指令判读节点]包信息，原样返回)
+	uint64		star_code = 2;//产品(卫星)编号(请求指令请求包或者独立判据请求[无指令判读节点]包信息，原样返回)
+	uint32		judge_type = 3;//0x30=前判判据、0x31=后判判据、0x32=无指令判据
+	uint32		affect_sequence_flag = 4;//0x30=不影响、0x31=影响
+	string		judge_code = 5;//判据代号(请求指令请求包或者独立判据请求[无指令判读节点]包信息，原样返回)
+	uint32		judge_result = 6;//判据结果 0x30=判据成功；其他值，表示异常。约定典型异常原因。
+	string		judge_result_desc = 7;//判据结果描述
+}
+
+//遥测原码帧
+//数据包类型:message_id=11
+message msgTMFrame
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	bytes			tm_frame_data = 2;//原码帧数据
+
+	uint32		crc_result = 3;//0=正确   1=错误
+
+	string		test_level = 4;//测试阶段
+	string		dev_resource_code = 5;//公司设备资产编号
+	string		dev_channel_code = 6;//设备通道描述
+
+	string		data_source = 7;//数据源
+	uint32		star_time = 8;//星上时间
+
+	string		gather_time = 9;//终端采集时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	uint32		data_type = 10;//数据类型(0x31=遥测数据，其他待定)
+	uint32		data_tag = 11;//数据标签(0x30=实时数据，0x31=回放数据，0x32=回灌数据)
+	uint32		data_save_flag = 12;//数据存储标志(0x30=不存储，0x31=存储)
+
+	uint64		frame_guid = 13;//MTP内部存储（雪花ID），同步帧、分包和参数，外部填0
+	uint32		frame_count = 14;//帧计数,MTP内部存储,外部填0
+}
+
+//遥测分包
+//数据包类型:message_id=12
+message msgTMPackage
+{
+	uint64		star_code = 1;//产品(卫星)编号
+
+	uint32		tm_pkg_id = 2;//遥测分包标识
+	string		tm_pkg_code = 3;//遥测分包代号
+	bytes			tm_pkg_head = 4;//分包头数据(6字节)
+	bytes			tm_pkg_data = 5;//分包遥测数据
+	uint32		tm_pkg_flag = 6;//延时实时标识(默认0x30实时)  0x30实时  0x31延时
+
+	string		test_level = 7;//测试阶段
+	string		dev_resource_code = 8;//公司设备资产编号
+	string		dev_channel_code = 9;//设备通道描述
+
+	string		data_source = 10;//数据源
+	uint32		star_time = 11;//星上时间
+
+	string		gather_time = 12;//终端采集时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	uint32		data_tag = 13;//数据标签(0x30=实时数据，0x31=回放数据，0x32=回灌数据)
+	uint32		data_save_flag = 14;//数据存储标志(0x30=不存储，0x31=存储)
+
+	uint64		frame_guid = 15;//MTP内部存储（雪花ID），同步帧、分包和参数，外部填0
+	int32			tm_id_result = 16;//MTP内部存储，外部填0
+}
+
+//参数项
+//数据包类型:message_id=13
+message msgParamItem
+{
+	string			param_code = 1;//参数代号
+	string			param_name = 2;//参数名称，可不填
+	uint64			raw_value = 3;//参数原码值
+
+	int32				eng_value_type = 4;	//参数工程值数据类别
+	oneof				eng_value//union----参数工程值
+	{
+		int32			v_int32  = 5;//eng_value_type=1
+		uint32		v_uint32 = 6;//eng_value_type=2
+		int64			v_int64  = 7;//eng_value_type=3
+		uint64		v_uint64 = 8;//eng_value_type=4
+		float			v_float  = 9;//eng_value_type=5
+		double		v_double = 10;//eng_value_type=6
+		string		v_string = 11;//eng_value_type=7
+		bytes			v_binary = 12;//eng_value_type=8
+	}
+
+	int32				status = 13;//状态值,默认填0
+	uint32			tm_pkg_flag = 14;//延时实时标识(默认0x30实时)  0x30实时  0x31延时
+
+	string			param_id = 15;//参数id(唯一id)
+	string			value_desc = 16;//工程值描述(解码配置)
+	string			value_judge = 17;//工程值判读(解码模块)
+}
+
+//参数项集合(Map型)
+//数据包类型:message_id=14
+message msgParamPackagesMap
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	map<string, msgParamItem>	mapParamPackages = 2;
+
+	string		test_level = 3;//测试阶段
+	string		dev_resource_code = 4;//公司设备资产编号
+	string		dev_channel_code = 5;//设备通道描述
+
+	string		data_source = 6;//数据源
+	uint32		star_time = 7;//星上时间
+
+	string		gather_time = 8;//终端采集时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	uint32		data_tag = 9;//数据标签(0x30=实时数据，0x31=回放数据，0x32=回灌数据)
+	uint32		data_save_flag = 10;//数据存储标志(0x30=不存储，0x31=存储)
+
+	uint64		frame_guid = 11;//MTP内部存储（雪花ID），同步帧、分包和参数，外部填0
+}
+
+//参数项集合(数组型)
+//数据包类型:message_id=15
+message msgParamPackagesArray
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	repeated msgParamItem	mapParamPackages = 2;
+
+	string		test_level = 3;//测试阶段
+	string		dev_resource_code = 4;//公司设备资产编号
+	string		dev_channel_code = 5;//设备通道描述
+
+	string		data_source = 6;//数据源
+	uint32		star_time = 7;//星上时间
+
+	string		gather_time = 8;//终端采集时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	uint32		data_tag = 9;//数据标签(0x30=实时数据，0x31=回放数据，0x32=回灌数据)
+	uint32		data_save_flag = 10;//数据存储标志(0x30=不存储，0x31=存储)
+
+	uint64		frame_guid = 11;//MTP内部存储（雪花ID），同步帧、分包和参数，外部填0
+}
+
+//测试序列结果记录
+//数据包类型:message_id=16
+message msgTestSequenceResultRecord
+{
+	uint64		star_code = 1;//产品(卫星)编号
+
+	uint64		test_ins_guid = 2;//本次测试开始到终止为一次测试，这个过程中只有一个GUID就是本字段
+	string		test_item_guid = 3;//测试项目guid，填写名称，由uint64变为string
+	string		item_parent_guid = 4;//测试项目父guid，填写名称，由uint64变为string
+
+	uint32		test_item_index = 5;//测试项目序列内顺序索引
+	string		node_type = 6;//节点类型  1=指令;2=无指令判据,3延时，4交互，5记录参数，6跳转指令。填写名称，由int32变为string
+	string		command_guid = 7;//填写指令代号_指令名称，由uint64变为string
+	string		pre_Judage_guid = 8;//前判据号guid，填写前判据结果，由uint64变为string
+	string		next_Judage_guid = 9;//后判据号guid，填写前判据结果，由uint64变为string
+	int32			test_resukt = 10;//0=成功(与节点类型有关，处理逻辑暂不变)  1或其他值=失败
+
+	string		test_content = 11;//测试结果内容
+	string		test_time = 12;//格式:YYYY-MM-DD hh:mm:ss.ms
+	string		test_use_name = 13;//用户名称
+}
+
+//参数结果请求
+//数据包类型:message_id=17
+message msgParamResultRequest
+{
+	string water_id = 1;//业务流水号
+	repeated string param_code = 2;//参数列表,例如:SS001 SS002 SS003
+	uint64		star_code = 3;//产品(卫星)编号
+}
+
+//参数结果请求(响应)
+//数据包类型:message_id=18
+message msgParamResultRepond
+{
+	string		water_id	= 1;//业务流水号（参数结果请求,原样返回）
+	repeated string param_result = 2;//参数结果列表列表  格式：参数代号=参数工程值,例如:SS001=5.8 SS002=42.5 SS003=0.66
+	uint64		star_code = 3;//产品(卫星)编号（参数结果请求,原样返回）
+}
+
+//指令日志
+//数据包类型:message_id=19
+message msgCommandLog
+{
+	string		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		command_id = 3;//指令ID
+	string		user = 4;//用户
+	string		send_time = 5;//指令发送时间:格式:YYYY-MM-DD hh:mm:ss.ms
+	uint32		command_result = 6;//操作结果
+	string		command_code = 7;//指令代号
+	string		command_name = 8;//指令名称
+	bytes 		command_data = 9;//指令数据块
+	string		command_type = 10;//指令类别
+	string		one_class = 11;//所属类别
+	string    two_class = 12;//所属分系统
+	string		pre_judge_result = 13;//前判结果
+	string		post_judge_result = 14;//后判结果
+
+	string		test_level = 15;//测试阶段
+	string		dev_resource_code = 16;//公司设备资产编号
+	string		dev_channel_code = 17;//设备通道描述
+	string		dev_name = 18;//设备名称
+
+	string		send_type	=	19;//发送类型：手工指令| 快速序列 |流程指令
+
+	uint32		data_tag = 20;//数据标签(0x30=实时数据，0x31=回放数据，0x32=回灌数据)
+	uint32		data_save_flag = 21;//数据存储标志(0x30=不存储，0x31=存储)
+}
+
+
+//常监视控制
+//数据包类型:message_id=21
+message msgConstMonitorControl
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	uint32		control_command = 3;//0x30=停止常监视功能，0x31启动常监视功能，0x32查询常监视功能状态
+	string		page_id = 4;//模块ID（所属）
+}
+
+//常监视控制响应
+//数据包类型:message_id=22
+message msgConstMonitorControlCACK
+{
+	string 		water_id = 1;//业务流水号（原样返回）
+	uint64		star_code = 2;//产品(卫星)编号（原样返回）
+	uint32		control_command = 3;//（原样返回）
+	uint32		control_result = 4;//0x30=停止常监视功能，0x31启动常监视功能,其他值失败
+	string		page_id = 5;//模块ID（原样返回）
+}
+
+//常监视设置监视项
+//数据包类型:message_id=23
+message msgSetConstMonitorItem
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	repeated	string monitor_item_code = 3;//监视项code列表(一个或者多个),暂时使用数据库中GU_ID[2023.1.5]
+	string		page_id = 4;//模块ID（所属）
+}
+
+//常监视设置监视项响应
+//数据包类型:message_id=24
+message msgSetConstMonitorItemCACK
+{
+	string 		water_id = 1;//业务流水号（原样返回）
+	uint64		star_code = 2;//产品(卫星)编号（原样返回）
+	uint32		monitor_config_result = 3;//0=成功,其他值失败
+	string		page_id = 4;//模块ID（原样返回）
+}
+
+//常监视结果
+//数据包类型:message_id=25
+message msgConstMonitorResult
+{
+	string 		water_id = 1;//业务流水号(随机动态生成，一次报警一个)
+	uint64		star_code = 2;//产品(卫星)编号
+	uint32		monitor_item_flag = 3;//0x30仅进行报警信息显示，0x31=报警结果影响正在执行的序列，同时进行报警信息展示
+	string		monitor_item_code = 4;//监视项code
+	string		monitor_item_desc = 5;//常监视结果描述
+	string		page_id = 6;//模块ID（所属）
+
+	string		star_name = 7;//产品(卫星)名称
+	string		warn_time = 8;//报警时间,格式:YYYY-MM-DD hh:mm:ss.ms
+	string		monitor_item_name = 9;//监视项名称
+}
+
+//常监视（删除监视页）
+//数据包类型:message_id=26
+message msgDeleteConstMonitorPage
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		page_id = 3;//模块ID（所属）
+}
+
+
+
+//常监视（查询监视页）
+//数据包类型:message_id=28
+message msgQueryMonitorPage
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+}
+
+//常监视设置监视项(响应28号消息)
+//数据包类型:message_id=29
+message msgMonitorPageCack
+{
+	string 		water_id = 1;//业务流水号（原样返回）
+	uint64		star_code = 2;//产品(卫星)编号（原样返回）
+	map<string,string> pages = 3;//监视页列表page_id<--->page_desc
+}
+
+
+//跳转指令
+//数据包类型:message_id=31
+message msgSwitchCommand
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	uint64		switch_node_code = 3;//跳转指令节点code
+}
+
+//跳转指令响应
+//数据包类型:message_id=32
+message msgSwitchCommandCACK
+{
+	string 		water_id = 1;//业务流水号（原样返回）
+	uint64		star_code = 2;//产品(卫星)编号（原样返回）
+	uint32		switch_result = 3;//跳转指令结果  0=成功，其他值失败
+	uint32		switch_to_index = 4;//跳转至其他节点索引(跳转指令结果=0有效)[废弃不用]
+	string		switch_desc = 5;//跳转信息描述
+	uint64		switch_to_node_code = 6;//跳转至其他节点GUID(跳转指令结果=0有效)
+}
+
+//TCC用户发送标志
+//数据包类型:message_id=41
+message msgTCCUserSendFlag
+{
+	string 		tcc_user_code = 1;//TCC主控用户code
+	uint32		send_flag = 2;//0x30=禁止发送  0x31=允许发送
+	uint32    master_control = 3;//主控权限：1=有主控权限  0=无主控权限
+}
+
+//TCC主控用户及TCC用户列表
+//数据包类型:message_id=42
+message msgTCCUserList
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	string 		master_control_user_code = 2;//TCC主控用户code
+	repeated	msgTCCUserSendFlag	tcc_user_list = 3;//TCC用户状态列表
+	string		modify_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//设置TCC用户发送标志(只允许主控用户发送)
+//数据包类型:message_id=43
+message msgSetTCCUserSendFlag
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	string 		master_control_user_code = 2;//TCC主控用户code
+	string 		tcc_user_code = 3;//TCC用户code
+	uint32		send_flag = 4;//0x30=禁止发送  0x31=允许发送
+	string		modify_time = 5;//格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//改变TCC主控用户(只允许(当前)主控用户发送)
+//数据包类型:message_id=44
+message msgChangeTCCControlUser
+{
+	uint64		star_code = 1;//产品(卫星)编号
+	string 		current_control_user_code = 2;//TCC主控用户code(当前)
+	string 		future_control_user_code = 3;//TCC主控用户code(转移到)
+	string		modify_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//设置TMTC状态
+//数据包类型:message_id=51
+message msgSetTMTCStatus
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		user_code	=	3;//用户编号
+	string		set_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+	uint32		is_encryption = 5;//是否加密  1=加密  0=不加密
+	uint32		is_scramble = 6;//是否加扰  1=加扰  0=不加扰
+	uint32		is_priority_encryption = 7;//是否优先加密  1=优先加密  0=不优先加密
+	uint32		is_decryption = 8;//是否解密  1=解密  0=不解密
+	uint32		is_descramble = 9;//是否解扰  1=解扰  0=不解扰
+	uint32		is_priority_decryption = 10;//是否优先解扰  1=优先解扰  0=不优先解扰
+}
+
+//设置TMTC状态CACK
+//数据包类型:message_id=52
+message msgSetTMTCStatusCACK
+{
+	string 		water_id = 1;//业务流水号(请求包中信息，原样返回)
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+	string		user_code	=	3;//用户编号(请求包中信息，原样返回)
+	string		cack_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+	uint32		cack_result=5;//0=成功  其他值等于失败
+	uint32		cack_flag=6;//返回标志  1=MTP返回  2=设备后台返回
+}
+
+//获取TMTC状态
+//数据包类型:message_id=53
+message msgGetTMTCStatus
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		user_code	=	3;//用户编号
+	string		query_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//获取TMTC状态CACK
+//数据包类型:message_id=54
+message msgGetTMTCStatusCACK
+{
+	string 		water_id = 1;//业务流水号(请求包中信息，原样返回)
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+	string		user_code	=	3;//用户编号(请求包中信息，原样返回)
+	string		cack_time = 4;//格式:YYYY-MM-DD hh:mm:ss.ms
+	uint32		cack_result=5;//0=成功  其他值等于失败
+	uint32		cack_flag=6;//返回标志  1=MTP返回  2=设备后台返回
+	uint32		is_encryption = 7;//是否加密  1=加密  0=不加密
+	uint32		is_scramble = 8;//是否加扰  1=加扰  0=不加扰
+	uint32		is_priority_encryption = 9;//是否优先加密  1=优先加密  0=不优先加密
+	uint32		is_decryption = 10;//是否解密  1=解密  0=不解密
+	uint32		is_descramble = 11;//是否解扰  1=解扰  0=不解扰
+	uint32		is_priority_decryption = 12;//是否优先解扰  1=优先解扰  0=不优先解扰
+}
+
+//MTP资源测试退出通报(MTP接收到测试退出时，通报所有终端链路,然后关闭链路)
+//终端链路暂不做逻辑处理，打印日志即可
+//数据包类型:message_id=61
+message msgMTPTestQuit
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		test_quit_time = 3;//格式:YYYY-MM-DD hh:mm:ss.ms
+	string		desc = 4;//描述信息
+}
+
+//终端链路ping到MTP资源
+//数据包类型:message_id=62
+message msgPingMTP
+{
+	string 		water_id = 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号
+	string		ping_information = 3;//终端信息(自定义，暂不要带汉字)
+	uint32		ping_count =4;//终端维护计数器
+	string		ping_time = 5;//格式:YYYY-MM-DD hh:mm:ss.ms
+	string		command_line = 6;//备用设计，填空
+}
+
+//MTP资源响应终端链路ping
+//数据包类型:message_id=63
+message msgMTPPong
+{
+	string 		water_id = 1;//业务流水号(请求包中信息，原样返回)
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+	string		ping_information = 3;//终端信息(自定义，暂不要带汉字)(请求包中信息，原样返回)
+	uint32		pong_count =4;//在终端维护计数器基础上加1
+	string		pong_time = 5;//格式:YYYY-MM-DD hh:mm:ss.ms
+	string		mtp_information = 6;//mtp信息(自定义，暂不要带汉字)
+	string		command_result = 7;//备用设计，填空
+}
+
+//终止手工指令请求
+//数据包类型:message_id=71
+message msgTerminateManualCommand
+{
+	string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+	uint64		star_code = 2;//产品(卫星)编号
+
+	string		manual_water_id	= 3;//手工发送时的业务流水号
+
+	string		command_code	=	4;//指令代号
+	uint32		send_conmand_outtime = 5;//发送指令超时时间
+	string		pre_judge_code	=	6;//指令前判据代号(无判据时，填空)
+	string		post_judge_code	=	7;//指令后判据代号(无判据时，填空)
+	uint32		post_judge_outtime = 8;//后判超时时间
+	string		send_command_time = 9;//指令发送时间,格式:YYYY-MM-DD hh:mm:ss.ms
+
+	string		star_name	=	10;//产品(卫星)名称
+	string		command_name	=	11;//指令名称
+	string		user_name	=	12;//用户名称
+	string		send_type	=	13;//发送类型：手工指令
+}
+
+//终止手工指令响应
+//数据包类型:message_id=72
+message msgTerminateManualCommandCACK
+{
+	string		water_id	= 1;//业务流水号((请求包中信息，原样返回))
+	uint64		star_code = 2;//产品(卫星)编号(请求包中信息，原样返回)
+
+	uint32		result = 3;//结果标志  0x30=成功,其他值失败
+	string		desc = 4;//描述信息
+	string		cack_time = 5;//终止手工指令响应时间,格式:YYYY-MM-DD hh:mm:ss.ms
+}
+
+//设备指令响应
+//数据包类型:message_id=78
+message msgDevCommandCack
+{
+	string		water_id	= 1;//业务流水号
+	string		tcc_water_id	= 2;//tcc业务流水号(请求包中信息[7号消息]，原样返回)
+	uint64		star_code = 3;//产品(卫星)编号(请求包中信息，原样返回)
+	string		command_code	=	4;//指令code
+	string		dev_cack_time = 5;//设备响应指令时间[MTP接收前端服务返回时刻],格式:YYYY-MM-DD hh:mm:ss.ms
+	string		dev_desc = 6;//设备响应描述信息
+}
+
+//日志信息
+//数据包类型:message_id=81
+message msgXLog
+{
+	string		water_id	= 1;//业务流水号
+	uint64		star_code = 2;//产品(卫星)编号，无时可以填0
+	uint32		log_type = 3;//目前填0
+	string		log = 4;//描述信息
+	string		log_time = 5;//日志时间,格式:YYYY-MM-DD hh:mm:ss.ms
+}

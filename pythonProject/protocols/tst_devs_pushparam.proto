@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "SZDFH-public.proto";
+
+package protobuf.TST_DEVS_PUSHPARAM;
+
+message Push
+{
+  string  strDevCode = 1;      //设备code
+  double  dbDatetime = 2;      //表示采样时间
+  map<string, Param>  mapProperty = 3;  //属性map,key:属性code.
+  string    water_id = 4;//业务流水号(确保全局唯一，建议GUID字符串)
+}

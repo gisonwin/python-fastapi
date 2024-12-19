@@ -1,0 +1,232 @@
+﻿syntax = "proto3";
+
+//版本记录：2022-5-6 V1
+//版本记录：2022-6-8 V2.1
+//版本记录：2022-11-3 V2.2
+//本协议：MTP查询协议
+package SZDFH_MTP_QUERY;
+
+//MTP查询基本信息
+//数据包类型:message_id=101
+message msgMTPQueryBaseInformation
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询基本信息响应
+//数据包类型:message_id=102
+message msgMTPQueryBaseInformationCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+  
+	string		style_code = 3;//型号代号
+	string		style_name = 4;//型号名称
+	uint32		style_serial_num = 5;//型号序号
+	
+	string		satelite_code = 9;//卫星代号
+	string		satelite_name = 10;//卫星名称
+	
+	string		satelite_f_name = 15;//卫星过程库名称(主库)
+	string		satelite_f_ip = 16;//卫星过程库IP(主库)
+	uint32		satelite_f_port = 17;//卫星过程库端口(主库)
+	string		satelite_f_user = 18;//卫星过程库用户(主库)
+	string		satelite_f_pwd = 19;//卫星过程库pwd(主库)
+	
+	string		satelite_b_name = 20;//卫星过程库名称(备库)
+	string		satelite_b_ip = 21;//卫星过程库IP(备库)
+	uint32		satelite_b_port = 22;//卫星过程库端口(备库)
+	string		satelite_b_user = 23;//卫星过程库用户(备库)
+	string		satelite_b_pwd = 24;//卫星过程库pwd(备库)
+}
+
+//MTP指令信息
+//数据包类型:message_id=111
+message msgMTPCommandItem
+{
+	string		command_guid	= 1;//指令guid(数据库中)
+  string		command_code	= 2;//指令代号
+  string		command_name	= 3;//指令名称
+  uint32		command_send_flag = 4;//指令发送标志   0=禁止发送  1=允许发送
+}
+
+//MTP查询指令
+//数据包类型:message_id=112
+message msgMTPQueryCommands
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询指令响应
+//数据包类型:message_id=113
+message msgMTPQueryCommandsCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPCommandItem>	mapCommands = 3;//key为指令代号，指令列表
+}
+
+//MTP参数信息
+//数据包类型:message_id=114
+message msgMTPParameterItem
+{
+	string		parameter_guid	= 1;//参数guid(数据库中)
+  string		parameter_code	= 2;//参数代号
+  string		parameter_name	= 3;//参数名称
+}
+
+//MTP查询参数
+//数据包类型:message_id=115
+message msgMTPQueryParameters
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询参数响应
+//数据包类型:message_id=116
+message msgMTPQueryParametersCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPParameterItem>	mapParameters = 3;//key为参数代号，参数列表
+	string		config_xml = 4;//解码配置XML（由数据库信息抽取生成，XML格式）
+	string		config_ini = 5;//解码配置ini（界面配置）
+}
+
+//MTP常监视信息
+//数据包类型:message_id=117
+message msgMTPConstMonitorItem
+{
+	string		monitor_guid	= 1;//常监视项guid(数据库中)
+  string		monitor_name	= 2;//常监视项名称
+   uint32		affect_sequence_flag = 3;//是否影响序列执行（0x30=不影响  0x31=影响）
+  string		monitor_function	= 4;//常监视项算法(例如:LNSRangeCheck)
+  map<string,string> mapFunctionConfig = 5;//常监视项算法配置(key为V0,V1,V2...)例如（V0="XXX" V1="YYY" V2="ZZZ"）
+}
+
+//MTP查询常监视信息
+//数据包类型:message_id=118
+message msgMTPQueryConstMonitors
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询常监视信息响应
+//数据包类型:message_id=119
+message msgMTPQueryConstMonitorsCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPConstMonitorItem>	mapConstMonitors = 3;//key为常监视项guid，常监视信息列表
+}
+
+//MTP判据判读项信息
+//数据包类型:message_id=120
+message msgMTPJudgeItem
+{
+	string		judge_item_guid	= 1;//判据判读项guid(数据库中)
+  string		judge_item_desc	= 2;//判据判读项描述
+  string		judge_item_function	= 3;//判据判读项算法(例如:LNSRangeCheck)
+  map<string,string> mapFunctionConfig = 4;//判据判读项算法配置(key为V0,V1,V2...)例如（V0="XXX" V1="YYY" V2="ZZZ"）
+}
+
+//MTP判据信息
+//数据包类型:message_id=121
+message msgMTPJudge
+{
+	string		judge_guid	= 1;//判据guid(数据库中)
+  string		judge_code	= 2;//判据code
+  uint32		judge_start_time	= 3;//判据启动时间
+  uint32		judge_out_time	= 4;//判据超时时间
+  string		command_code	= 5;//指令code
+  uint32		affect_sequence_flag = 6;//是否影响序列执行（0x30=不影响  0x31=影响）
+  uint32		judge_type = 7;//判据类型(0=前判据 1=后判据)
+  map<string,msgMTPJudgeItem> judge_item_config = 8;//判据判读项列表(key为判据判读项guid)
+}
+
+//MTP查询判据信息
+//数据包类型:message_id=122
+message msgMTPQueryJudges
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询判据信息响应
+//数据包类型:message_id=123
+message msgMTPQueryJudgesCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPJudge>	mapJudges = 3;//key为判据guid，判据信息列表
+}
+
+//MTP指令跳转项信息
+//数据包类型:message_id=124
+message msgMTPCommandSwitchItem
+{
+	string		switch_item_guid	= 1;//指令跳转项guid(数据库中)
+  string		switch_item_desc	= 2;//指令跳转项描述
+  uint32		switch_to_index = 3;//成功跳转至测试项目内索引
+  string		switch_item_function	= 4;//指令跳转项算法(例如:LNSRangeCheck)
+  map<string,string> mapFunctionConfig = 5;//指令跳转项算法配置(key为V0,V1,V2...)例如（V0="XXX" V1="YYY" V2="ZZZ"）
+}
+
+//MTP跳转指令信息
+//数据包类型:message_id=125
+message msgMTPSwitchCommand
+{
+	string		switch_command_guid	= 1;//跳转指令guid(数据库中)
+  string		switch_command_desc	= 2;//指令跳转节点描述
+  map<string,msgMTPCommandSwitchItem> mapCommandSwitchItems = 3;//指令跳转项(key为指令跳转项guid)
+}
+
+//MTP查询跳转指令信息
+//数据包类型:message_id=126
+message msgMTPQuerySwitchCommands
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询判据信息响应
+//数据包类型:message_id=127
+message msgMTPQuerySwitchCommandsCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPSwitchCommand>	mapSwitchCommands = 3;//key为跳转指令guid，跳转指令信息列表
+}
+
+//MTP无指令判据信息
+//数据包类型:message_id=128
+message msgMTPNoCommandJudgeItem
+{
+	string		judge_guid	= 1;//判据guid(数据库中)
+  string		judge_code	= 2;//判据code
+  string		judge_desc	= 3;//判据描述
+  uint32		affect_sequence_flag = 4;//是否影响序列执行（0x30=不影响  0x31=影响）
+  string		judge_function	= 5;//判据判读项算法(例如:LNSRangeCheck)
+  map<string,string> mapFunctionConfig = 6;//判据算法配置(key为V0,V1,V2...)例如（V0="XXX" V1="YYY" V2="ZZZ"）
+}
+
+//MTP查询无指令判据信息
+//数据包类型:message_id=129
+message msgMTPQueryNoCommandJudges
+{
+  string		water_id	= 1;//业务流水号(确保全局唯一，建议GUID字符串)
+  uint64		star_code = 2;//对应卫星编号
+}
+
+//MTP查询无指令判据信息响应
+//数据包类型:message_id=130
+message msgMTPQueryNoCommandJudgesCACK
+{
+  string		water_id	= 1;//业务流水号(请求包中信息，原样返回)
+  uint64		star_code = 2;//对应卫星编号(请求包中信息，原样返回)
+	map<string, msgMTPNoCommandJudgeItem>	mapUSUJudges = 3;//无指令判据算法配置(key为无指令判据信息judge_guid)
+}
