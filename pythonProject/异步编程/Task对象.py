@@ -43,13 +43,13 @@ async def func_test():
 
 
 async def func_test_2():
-    print("begin main")
+    print("begin main 2")
     # 创建Task对象，将当前执行func函数回到事件循环中
     task_list = [
         asyncio.create_task(func(), name="t1"),
         asyncio.create_task(func(), name="t2")
     ]
-    print("end main")
+    print("end main 2")
 
     done, pending = await asyncio.wait(task_list, timeout=None)
     print(done)

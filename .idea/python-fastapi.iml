@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/pythonProject/async-rest/models" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/pythonProject/.venv" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

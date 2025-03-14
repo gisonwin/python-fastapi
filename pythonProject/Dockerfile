@@ -1,6 +1,6 @@
 #FROM python:3.10.11
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
-MAINTAINER gisonwin@qq.com
+LABEL author="gisonwin@qq.com"
 RUN mkdir -p /code
 COPY requirements.txt /code/requirements.txt
 ENV PIP_ROOT_USER_ACTION=ignore

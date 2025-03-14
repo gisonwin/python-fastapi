@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0csearch.proto\x12\x08protobuf\"L\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\x13\n\x0bpage_number\x18\x02 \x01(\x05\x12\x17\n\x0fresult_per_page\x18\x03 \x01(\x05\"!\n\x03\x46ooJ\x04\x08\x02\x10\x03J\x04\x08\x0f\x10\x10J\x04\x08\t\x10\x0cR\x03\x66ooR\x03\x62\x61r\"\x98\x01\n\x0eSearchResponse\x12!\n\x07results\x18\x01 \x03(\x0b\x32\x10.protobuf.Result\x12\x34\n\x06params\x18\x02 \x03(\x0b\x32$.protobuf.SearchResponse.ParamsEntry\x1a-\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"6\n\x06Result\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08snippets\x18\x03 \x03(\tb\x06proto3'
+  serialized_pb=b'\n\x0csearch.proto\x12\x08protobuf\"L\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\x13\n\x0bpage_number\x18\x02 \x01(\x05\x12\x17\n\x0fresult_per_page\x18\x03 \x01(\x05\"!\n\x03\x46ooJ\x04\x08\x02\x10\x03J\x04\x08\x0f\x10\x10J\x04\x08\t\x10\x0cR\x03\x66ooR\x03\x62\x61r\"\xaa\x01\n\x0eSearchResponse\x12!\n\x07results\x18\x01 \x03(\x0b\x32\x10.protobuf.Result\x12\x34\n\x06params\x18\x02 \x03(\x0b\x32$.protobuf.SearchResponse.ParamsEntry\x1a?\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1f\n\x05value\x18\x02 \x01(\x0b\x32\x10.protobuf.Result:\x02\x38\x01\"6\n\x06Result\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08snippets\x18\x03 \x03(\tb\x06proto3'
 )
 
 
@@ -113,8 +113,8 @@ _SEARCHRESPONSE_PARAMSENTRY = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='value', full_name='protobuf.SearchResponse.ParamsEntry.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -131,7 +131,7 @@ _SEARCHRESPONSE_PARAMSENTRY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=247,
-  serialized_end=292,
+  serialized_end=310,
 )
 
 _SEARCHRESPONSE = _descriptor.Descriptor(
@@ -169,7 +169,7 @@ _SEARCHRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=140,
-  serialized_end=292,
+  serialized_end=310,
 )
 
 
@@ -214,10 +214,11 @@ _RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=294,
-  serialized_end=348,
+  serialized_start=312,
+  serialized_end=366,
 )
 
+_SEARCHRESPONSE_PARAMSENTRY.fields_by_name['value'].message_type = _RESULT
 _SEARCHRESPONSE_PARAMSENTRY.containing_type = _SEARCHRESPONSE
 _SEARCHRESPONSE.fields_by_name['results'].message_type = _RESULT
 _SEARCHRESPONSE.fields_by_name['params'].message_type = _SEARCHRESPONSE_PARAMSENTRY
